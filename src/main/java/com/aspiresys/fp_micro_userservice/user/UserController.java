@@ -5,7 +5,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.aspiresys.fp_micro_userservice.common.dto.AppResponse;
@@ -28,10 +30,23 @@ public class UserController {
      * @return
      */
     @GetMapping("/hello")
-    public ResponseEntity<AppResponse<String>> hello(String email) {
+    public ResponseEntity<AppResponse<String>> hello(@RequestParam(required = false) String email) {
         return ResponseEntity.ok(new AppResponse<>("Hello, " + email + "!", null));
     }
-    
+
+     /**
+     * Get user body.
+     * This endpoint retrieves the body of the user.
+     * 
+     * @return the user body
+     */
+    @GetMapping("/userbody")
+    public ResponseEntity<AppResponse<String>> getUserBody() {
+        String userBody = User.class.toString();
+        return ResponseEntity.ok(new AppResponse<>("User body retrieved successfully", userBody));
+        
+    }
+
     /**
      * Get a user by their email.
      * This endpoint retrieves a user based on their email address.
@@ -39,15 +54,17 @@ public class UserController {
      * * If the user is found, it returns a 200 OK response with the user data.
      * * If the user is not found, it returns a 404 Not Found response.
      * 
+     * 
      * @param email the email of the user to retrieve
      * @return the user with the specified email
      */
-    @GetMapping("/email/{email}")
-    public ResponseEntity<AppResponse<User>> getUserByEmail(@PathVariable String email) {
+    @GetMapping("/email")
+    public ResponseEntity<AppResponse<User>> getUserByEmail(@RequestParam(required = false) String email) {
         if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
             return ResponseEntity.badRequest()
-                .body(new AppResponse<>("Invalid email format", null));
+                .body(new AppResponse<>("Invalid or missing email format", null));
         }
+        System.out.println("Received email: " + email);
         User user = userService.getUserByEmail(email);
         if (user == null) {
             return ResponseEntity.status(404)
@@ -64,10 +81,14 @@ public class UserController {
      * @return the created user
      */
     @PostMapping("/create")
-    public ResponseEntity<AppResponse<User>> createUser(User user) {
+    public ResponseEntity<AppResponse<User>> createUser(@RequestBody User user) {
         if (user == null || user.getEmail() == null || user.getFirstName() == null) {
             return ResponseEntity.badRequest()
                 .body(new AppResponse<>("Invalid user data", null));
+        }
+        if (userService.getUserByEmail(user.getEmail()) != null) {
+            return ResponseEntity.status(409)
+                .body(new AppResponse<>("User with this email already exists", null));
         }
         User createdUser = userService.saveUser(user);
         return ResponseEntity.ok(new AppResponse<>("User created successfully", createdUser));
