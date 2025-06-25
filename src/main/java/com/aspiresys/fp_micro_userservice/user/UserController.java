@@ -48,17 +48,21 @@ public class UserController {
     }
 
     /**
-     * Get a user by their email.
-     * This endpoint retrieves a user based on their email address.
-     * * It validates the email format and returns a 400 Bad Request if the format is invalid.
-     * * If the user is found, it returns a 200 OK response with the user data.
-     * * If the user is not found, it returns a 404 Not Found response.
-     * 
-     * 
-     * @param email the email of the user to retrieve
+     * <pre>
+     * <b>Get a user by their email.</b><br>
+     * This endpoint retrieves a user based on their email address.<br>
+     * - It validates the email format and returns a 400 Bad Request if the format is invalid.<br>
+     * - If the user is found, it returns a 200 OK response with the user data.<br>
+     * - If the user is not found, it returns a 404 Not Found response.<br>
+     * <br>
+     * The request would look like this:<br>
+     * <code>GET /users/find?email=mail@example.com</code><br>
+     * <br>
+     * @param email the email of the user to retrieve<br>
      * @return the user with the specified email
+     * </pre>
      */
-    @GetMapping("/email")
+    @GetMapping("/find")
     public ResponseEntity<AppResponse<User>> getUserByEmail(@RequestParam(required = false) String email) {
         if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
             return ResponseEntity.badRequest()
