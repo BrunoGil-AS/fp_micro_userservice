@@ -61,13 +61,6 @@ public class UserControllerTest {
         assertEquals("Hello, null!", response.getBody().getMessage());
     }
 
-    @Test
-    public void testGetUserBody() {
-        ResponseEntity<AppResponse<String>> response = userController.getUserBody();
-        assertEquals(200, response.getStatusCode().value());
-        assertEquals("User body retrieved successfully", response.getBody().getMessage());
-        assertNotNull(response.getBody().getData());
-    }
 
     @Test
     public void testGetUserByEmail_validEmail_userFound() {

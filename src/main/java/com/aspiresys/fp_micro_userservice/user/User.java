@@ -32,6 +32,7 @@ import lombok.*;
  *   <li>{@code firstName} - The user's first name.</li>
  *   <li>{@code lastName} - The user's last name.</li>
  *   <li>{@code email} - The user's email address.</li>
+ *  <li>{@code address} - The user's physical address.</li>
  * </ul>
  * 
  * @author bruno.gil
@@ -44,6 +45,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class User {
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,5 +54,6 @@ public class User {
     private String firstName;
     private String lastName;
     private String email;
+    private String address;
 
 }
