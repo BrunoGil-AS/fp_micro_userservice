@@ -7,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -128,19 +127,29 @@ public class UserController {
      * @param id the ID of the user to delete
      * @return a response indicating the result of the deletion
      */
-    @DeleteMapping("/me/delete/{id}")
+    @DeleteMapping("/me/delete")
     @PreAuthorize("hasRole('USER')") // Ensure that only users with the 'USER' role can access this endpoint
-    public ResponseEntity<AppResponse<Boolean>> deleteUser(@PathVariable Long id) {
-        if (id == null) {
+    public ResponseEntity<AppResponse<Boolean>> deleteUser(Authentication authentication) {
+        String email = ((Jwt) authentication.getPrincipal()).getClaimAsString("email");
+        if (email == null || email.isEmpty()) {
+            log.warning("Email not found in authentication token");
             return ResponseEntity.badRequest()
-                .body(new AppResponse<>("Invalid user ID", Boolean.FALSE));
+                .body(new AppResponse<>("Email not found in authentication token", false));
         }
-        boolean isDeleted = userService.deleteUserById(id);
-        if (!isDeleted) {
+        User user = userService.getUserByEmail(email);
+        if (user == null) {
+            log.warning("User not found for email: " + email);
             return ResponseEntity.status(404)
-                .body(new AppResponse<>("User not found", Boolean.FALSE));
+                .body(new AppResponse<>("User not found", false));
         }
-        return ResponseEntity.ok(new AppResponse<>(String.format("User %d deleted successfully", id), Boolean.TRUE));
+        boolean deleted = userService.deleteUserByEmail(user.getEmail());
+        if (!deleted) {
+            log.warning("Failed to delete user with ID: " + user.getId());
+            return ResponseEntity.status(500)
+                .body(new AppResponse<>("Failed to delete user", false));
+        }
+        log.info("User deleted successfully: " + user.getEmail());
+        return ResponseEntity.ok(new AppResponse<>("User deleted successfully", true));
     }
 
     /**

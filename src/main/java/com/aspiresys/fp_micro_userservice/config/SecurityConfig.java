@@ -43,18 +43,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Desactiva CSRF para APIs REST
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Habilita CORS
                 .authorizeHttpRequests(authz -> authz
-                        // Endpoints públicos
+                        // Endpoints
                         .requestMatchers(HttpMethod.GET, "/users/hello").permitAll()
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         
-                        // Endpoints específicos del usuario autenticado (/me/**)
+                        // Specific endpoints for user management
                         .requestMatchers(HttpMethod.GET, "/users/me").hasRole("USER")
                         .requestMatchers(HttpMethod.POST, "/users/me/create").hasRole("USER")
                         .requestMatchers(HttpMethod.PUT, "/users/me/update").hasRole("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/users/me/delete/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/users/me/delete").hasRole("USER")
+                        // Allow access to current user info for both USER and ADMIN roles
                         .requestMatchers(HttpMethod.GET, "/users/me/current").hasAnyRole("USER", "ADMIN")
-                        
-                        // Cualquier otra petición requiere autenticación
+                        // Any other request requires authentication
                         .anyRequest().authenticated()
                 )
                 // Configurar como servidor de recursos OAuth2 con JWT
