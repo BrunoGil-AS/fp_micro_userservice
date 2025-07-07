@@ -188,6 +188,35 @@ public class UserController {
         return ResponseEntity.status(401)
             .body(new AppResponse<>("User not authenticated", null));
     }
+    /**
+     * <pre>
+     * <b>Get a user by their email - Internal endpoint for microservices validation.</b><br>
+     * This endpoint is used by other microservices to validate user existence.<br>
+     * It's a public endpoint for internal service-to-service communication.<br>
+     * <br>
+     * The request would look like this:<br>
+     * <code>GET /users/find?email=mail@example.com</code><br>
+     * <br>
+     * @param email the email of the user to retrieve<br>
+     * @return the user with the specified email
+     * </pre>
+     */
+    @GetMapping("/find")
+    public ResponseEntity<AppResponse<User>> getUserByEmailInternal(@RequestParam(required = false) String email) {
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            log.warning("Invalid or missing email format: " + email);
+            return ResponseEntity.badRequest()
+                .body(new AppResponse<>("Invalid or missing email format", null));
+        }
         
+        User user = userService.getUserByEmail(email);
+        if (user == null) {
+            log.warning("User not found for email: " + email);
+            return ResponseEntity.status(404)
+                .body(new AppResponse<>("User not found", null));
+        }
+        log.info("User found for internal validation: " + user.getEmail());
+        return ResponseEntity.ok(new AppResponse<>("User found", user));
+    }
 
 }

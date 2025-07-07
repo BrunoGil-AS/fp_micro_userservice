@@ -12,9 +12,12 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import lombok.extern.java.Log;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,19 +35,29 @@ import java.util.stream.Collectors;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true) // Habilita @PreAuthorize y @PostAuthorize
+@Log
 public class SecurityConfig {
 
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
     private String jwkSetUri;
+
+    private final InternalServiceFilter internalServiceFilter;
+
+    public SecurityConfig(InternalServiceFilter internalServiceFilter) {
+        this.internalServiceFilter = internalServiceFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable()) // Desactiva CSRF para APIs REST
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Habilita CORS
+                // Agregar filtro personalizado para endpoints internos
+                .addFilterBefore(internalServiceFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authz -> authz
-                        // Endpoints
+                        // Endpoints públicos para comunicación interna entre microservicios
                         .requestMatchers(HttpMethod.GET, "/users/hello").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users/find/**").permitAll() // Endpoint interno para validación de usuarios
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
                         
                         // Specific endpoints for user management
@@ -89,6 +102,8 @@ public class SecurityConfig {
                 authorities = Arrays.asList(scope.split(" "));
             }
             
+            log.info("Authorities extracted from JWT: " + authorities);
+            log.info("JWT Claims: " + jwt.getClaims());
             // Convertir a SimpleGrantedAuthority y asegurar prefijo ROLE_
             if (authorities != null) {
                 return authorities.stream()
