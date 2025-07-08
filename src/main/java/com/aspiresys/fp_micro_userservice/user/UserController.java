@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.aspiresys.fp_micro_userservice.common.dto.AppResponse;
+import com.aspiresys.fp_micro_userservice.aop.annotation.Auditable;
+import com.aspiresys.fp_micro_userservice.aop.annotation.ExecutionTime;
+import com.aspiresys.fp_micro_userservice.aop.annotation.ValidateParameters;
 
 import lombok.extern.java.Log;
 
@@ -84,6 +87,9 @@ public class UserController {
      */
     @PostMapping("/me/create")
     @PreAuthorize("hasRole('USER')") // Ensure that only users with the 'USER' role can access this endpoint
+    @Auditable(operation = "CREATE_USER_ENDPOINT", entityType = "User", logParameters = true, logResult = true)
+    @ExecutionTime(operation = "Create User API", warningThreshold = 1000, detailed = true)
+    @ValidateParameters(notNull = true, message = "User data cannot be null")
     public ResponseEntity<AppResponse<User>> createUser(@RequestBody User user) {
         if (user == null || user.getEmail() == null || user.getFirstName() == null) {
             return ResponseEntity.badRequest()
@@ -106,6 +112,9 @@ public class UserController {
      */
     @PutMapping("/me/update")
     @PreAuthorize("hasRole('USER')") // Ensure that only users with the 'USER' role can access this endpoint
+    @Auditable(operation = "UPDATE_USER_ENDPOINT", entityType = "User", logParameters = true, logResult = true)
+    @ExecutionTime(operation = "Update User API", warningThreshold = 800, detailed = true)
+    @ValidateParameters(notNull = true, message = "User data cannot be null")
     public ResponseEntity<AppResponse<User>> updateUser(@RequestBody User user) {
         if (user == null || user.getId() == null) {
             log.warning("Invalid user data for update: " + user);
@@ -129,6 +138,8 @@ public class UserController {
      */
     @DeleteMapping("/me/delete")
     @PreAuthorize("hasRole('USER')") // Ensure that only users with the 'USER' role can access this endpoint
+    @Auditable(operation = "DELETE_USER_ENDPOINT", entityType = "User", logParameters = false, logResult = true)
+    @ExecutionTime(operation = "Delete User API", warningThreshold = 600, detailed = true)
     public ResponseEntity<AppResponse<Boolean>> deleteUser(Authentication authentication) {
         String email = ((Jwt) authentication.getPrincipal()).getClaimAsString("email");
         if (email == null || email.isEmpty()) {
