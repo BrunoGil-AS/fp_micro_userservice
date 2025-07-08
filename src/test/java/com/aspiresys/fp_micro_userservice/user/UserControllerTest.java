@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 
 
@@ -45,6 +47,14 @@ public class UserControllerTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    private Authentication createMockAuthentication(String email) {
+        Authentication authentication = mock(Authentication.class);
+        Jwt jwt = mock(Jwt.class);
+        when(authentication.getPrincipal()).thenReturn(jwt);
+        when(jwt.getClaimAsString("email")).thenReturn(email);
+        return authentication;
     }
 
     @Test
@@ -162,27 +172,38 @@ public class UserControllerTest {
 
     @Test
     public void testDeleteUser_success() {
-        when(userService.deleteUserById(1L)).thenReturn(true);
+        String email = "test@example.com";
+        User user = new User();
+        user.setId(1L);
+        user.setEmail(email);
+        
+        Authentication authentication = createMockAuthentication(email);
+        when(userService.getUserByEmail(email)).thenReturn(user);
+        when(userService.deleteUserByEmail(email)).thenReturn(true);
 
-        ResponseEntity<AppResponse<Boolean>> response = userController.deleteUser(1L);
+        ResponseEntity<AppResponse<Boolean>> response = userController.deleteUser(authentication);
         assertEquals(200, response.getStatusCode().value());
-        assertEquals("User 1 deleted successfully", response.getBody().getMessage());
+        assertEquals("User deleted successfully", response.getBody().getMessage());
         assertTrue(response.getBody().getData());
     }
 
     @Test
-    public void testDeleteUser_invalidId() {
-        ResponseEntity<AppResponse<Boolean>> response = userController.deleteUser(null);
+    public void testDeleteUser_invalidAuthentication() {
+        Authentication authentication = createMockAuthentication(null);
+
+        ResponseEntity<AppResponse<Boolean>> response = userController.deleteUser(authentication);
         assertEquals(400, response.getStatusCode().value());
-        assertEquals("Invalid user ID", response.getBody().getMessage());
+        assertEquals("Email not found in authentication token", response.getBody().getMessage());
         assertFalse(response.getBody().getData());
     }
 
     @Test
     public void testDeleteUser_userNotFound() {
-        when(userService.deleteUserById(2L)).thenReturn(false);
+        String email = "test@example.com";
+        Authentication authentication = createMockAuthentication(email);
+        when(userService.getUserByEmail(email)).thenReturn(null);
 
-        ResponseEntity<AppResponse<Boolean>> response = userController.deleteUser(2L);
+        ResponseEntity<AppResponse<Boolean>> response = userController.deleteUser(authentication);
         assertEquals(404, response.getStatusCode().value());
         assertEquals("User not found", response.getBody().getMessage());
         assertFalse(response.getBody().getData());
