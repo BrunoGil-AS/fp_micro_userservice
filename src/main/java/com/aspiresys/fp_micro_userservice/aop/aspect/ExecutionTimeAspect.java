@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import com.aspiresys.fp_micro_userservice.aop.annotation.ExecutionTime;
 import com.aspiresys.fp_micro_userservice.config.AopProperties;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,7 +36,7 @@ import java.time.format.DateTimeFormatter;
  */
 @Aspect
 @Component
-@Log
+@Slf4j
 public class ExecutionTimeAspect {
 
     @Autowired
@@ -131,7 +131,7 @@ public class ExecutionTimeAspect {
         // Log principal
         if (executionTimeMs > executionTime.warningThreshold() && 
             aopProperties.getPerformance().isLogSlowOperations()) {
-            log.warning(perfLog.toString());
+            log.warn(perfLog.toString());
         } else {
             log.info(perfLog.toString());
         }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import com.aspiresys.fp_micro_userservice.aop.annotation.Auditable;
 import com.aspiresys.fp_micro_userservice.config.AopProperties;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,7 +37,7 @@ import java.time.format.DateTimeFormatter;
  */
 @Aspect
 @Component
-@Log
+@Slf4j
 public class AuditAspect {
 
     @Autowired
@@ -124,7 +124,7 @@ public class AuditAspect {
 
         auditLog.append("\n|_ Operation failed");
 
-        log.severe(auditLog.toString());
+        log.error(auditLog.toString());
         
         // Log adicional para métricas de errores
         logAuditMetrics(timestamp, auditable.operation(), className, methodName, "ERROR", args.length);

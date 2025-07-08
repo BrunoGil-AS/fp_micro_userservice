@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import com.aspiresys.fp_micro_userservice.aop.annotation.ValidateParameters;
 import com.aspiresys.fp_micro_userservice.config.AopProperties;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.regex.Pattern;
@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  */
 @Aspect
 @Component
-@Log
+@Slf4j
 public class ValidationAspect {
 
     @Autowired
@@ -97,7 +97,7 @@ public class ValidationAspect {
                     "User service parameter validation failed in %s.%s(): Parameter at index %d is null. %s",
                     className, methodName, i, validateParameters.message()
                 );
-                log.severe(errorMessage);
+                log.error(errorMessage);
                 throw new IllegalArgumentException(errorMessage);
             }
         }
@@ -132,7 +132,7 @@ public class ValidationAspect {
                     "User service parameter validation failed in %s.%s(): Parameter at index %d is empty. %s",
                     className, methodName, i, validateParameters.message()
                 );
-                log.severe(errorMessage);
+                log.error(errorMessage);
                 throw new IllegalArgumentException(errorMessage);
             }
         }
@@ -159,7 +159,7 @@ public class ValidationAspect {
                         "User service parameter validation failed in %s.%s(): Parameter at index %d has invalid email format. %s",
                         className, methodName, i, validateParameters.message()
                     );
-                    log.severe(errorMessage);
+                    log.error(errorMessage);
                     throw new IllegalArgumentException(errorMessage);
                 }
             }

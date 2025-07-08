@@ -5,6 +5,10 @@
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"/>
     <property name="LOG_PATTERN_CONSOLE" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [USER-SERVICE] [%logger{36}] - %msg%n"/>
     
+    <!-- Patrón específico para logs estructurados de AOP -->
+    <property name="LOG_PATTERN_STRUCTURED" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [AOP-USER-OPERATIONS] - %msg%n"/>
+    <property name="LOG_PATTERN_STRUCTURED_CONSOLE" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [AOP-USER-OPERATIONS] - %msg%n"/>
+    
     <!-- Console Appender para desarrollo -->
     <springProfile name="!prod">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -72,6 +76,29 @@
             <level>WARN</level>
         </filter>
     </appender>
+
+    <!-- File Appender específico para AOP User Operations (logs estructurados) -->
+    <appender name="FILE_AOP_USER_OPERATIONS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/aop-user-operations.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN_STRUCTURED}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/archived/aop-user-operations.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>800MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Console Appender específico para AOP User Operations -->
+    <springProfile name="!prod">
+        <appender name="CONSOLE_AOP_USER_OPERATIONS" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN_STRUCTURED_CONSOLE}</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
 
     <!-- Logger específico para User Service -->
         <!-- Configuración para desarrollo (!prod) -->
@@ -152,6 +179,38 @@
         <appender-ref ref="FILE_DATABASE"/>
         <appender-ref ref="FILE_ERROR"/>
     </logger>
+
+    <!-- Logger específico para aspectos AOP de UserOperation (logs estructurados) -->
+    <springProfile name="!prod">
+        <logger name="com.aspiresys.fp_micro_userservice.aop.aspect.UserOperationAspect" level="INFO" additivity="false">
+            <appender-ref ref="FILE_AOP_USER_OPERATIONS"/>
+            <appender-ref ref="CONSOLE_AOP_USER_OPERATIONS"/>
+            <appender-ref ref="FILE_ERROR"/>
+        </logger>
+    </springProfile>
+    
+    <springProfile name="prod">
+        <logger name="com.aspiresys.fp_micro_userservice.aop.aspect.UserOperationAspect" level="INFO" additivity="false">
+            <appender-ref ref="FILE_AOP_USER_OPERATIONS"/>
+            <appender-ref ref="FILE_ERROR"/>
+        </logger>
+    </springProfile>
+
+    <!-- Logger para otros aspectos AOP -->
+    <springProfile name="!prod">
+        <logger name="com.aspiresys.fp_micro_userservice.aop.aspect" level="DEBUG" additivity="false">
+            <appender-ref ref="FILE_USER_OPERATIONS"/>
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE_ERROR"/>
+        </logger>
+    </springProfile>
+    
+    <springProfile name="prod">
+        <logger name="com.aspiresys.fp_micro_userservice.aop.aspect" level="DEBUG" additivity="false">
+            <appender-ref ref="FILE_USER_OPERATIONS"/>
+            <appender-ref ref="FILE_ERROR"/>
+        </logger>
+    </springProfile>
 
     <!-- Loggers para dependencias externas -->
     <logger name="org.springframework" level="WARN"/>
