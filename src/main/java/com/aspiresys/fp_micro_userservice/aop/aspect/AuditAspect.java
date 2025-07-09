@@ -62,17 +62,16 @@ public class AuditAspect {
         Object[] args = joinPoint.getArgs();
 
         StringBuilder auditLog = new StringBuilder();
-        auditLog.append("USER_AUDIT|");
-        auditLog.append("timestamp=").append(timestamp);
-        auditLog.append("|operation=").append(auditable.operation());
-        auditLog.append("|entity=").append(auditable.entityType());
-        auditLog.append("\n├─ Class: ").append(className);
-        auditLog.append("\n├─ Method: ").append(methodName);
-        auditLog.append("\n├─ Status: SUCCESS");
+        auditLog.append("\n[USER-AUDIT-SUCCESS] ").append(timestamp);
+        auditLog.append("\n|- Operation: ").append(auditable.operation());
+        auditLog.append("\n|- Entity: ").append(auditable.entityType());
+        auditLog.append("\n|- Class: ").append(className);
+        auditLog.append("\n|- Method: ").append(methodName);
+        auditLog.append("\n|- Status: SUCCESS");
 
         // Registrar parámetros si está habilitado
         if (auditable.logParameters() && aopProperties.getAudit().isIncludeParameters()) {
-            auditLog.append("\n├─ Parameters: ").append(formatParameters(args));
+            auditLog.append("\n|- Parameters: ").append(formatParameters(args));
         }
 
         // Registrar resultado si está habilitado
@@ -107,19 +106,18 @@ public class AuditAspect {
         Object[] args = joinPoint.getArgs();
 
         StringBuilder auditLog = new StringBuilder();
-        auditLog.append("USER_AUDIT_ERROR|");
-        auditLog.append("timestamp=").append(timestamp);
-        auditLog.append("|operation=").append(auditable.operation());
-        auditLog.append("|entity=").append(auditable.entityType());
-        auditLog.append("\n├─ Class: ").append(className);
-        auditLog.append("\n├─ Method: ").append(methodName);
-        auditLog.append("\n├─ Status: ERROR");
-        auditLog.append("\n├─ Exception: ").append(exception.getClass().getSimpleName());
-        auditLog.append("\n├─ Error Message: ").append(exception.getMessage());
+        auditLog.append("\n[USER-AUDIT-ERROR] ").append(timestamp);
+        auditLog.append("\n|- Operation: ").append(auditable.operation());
+        auditLog.append("\n|- Entity: ").append(auditable.entityType());
+        auditLog.append("\n|- Class: ").append(className);
+        auditLog.append("\n|- Method: ").append(methodName);
+        auditLog.append("\n|- Status: ERROR");
+        auditLog.append("\n|- Exception: ").append(exception.getClass().getSimpleName());
+        auditLog.append("\n|- Error Message: ").append(exception.getMessage());
 
         // Registrar parámetros si está habilitado (útil para debugging)
         if (auditable.logParameters() && aopProperties.getAudit().isIncludeParameters()) {
-            auditLog.append("\n├─ Parameters: ").append(formatParameters(args));
+            auditLog.append("\n|- Parameters: ").append(formatParameters(args));
         }
 
         auditLog.append("\n|_ Operation failed");
@@ -202,10 +200,15 @@ public class AuditAspect {
      */
     private void logAuditMetrics(String timestamp, String operation, String className, 
                                 String methodName, String status, int paramCount) {
-        String metricsLog = String.format(
-            "USER_METRICS|operation=%s|class=%s|method=%s|status=%s|param_count=%d|timestamp=%s",
-            operation, className, methodName, status, paramCount, timestamp
-        );
-        log.info(metricsLog);
+        StringBuilder metricsLog = new StringBuilder();
+        metricsLog.append("\n[USER-AUDIT-METRICS] ").append(timestamp);
+        metricsLog.append("\n|- Operation: ").append(operation);
+        metricsLog.append("\n|- Class: ").append(className);
+        metricsLog.append("\n|- Method: ").append(methodName);
+        metricsLog.append("\n|- Status: ").append(status);
+        metricsLog.append("\n|- Param Count: ").append(paramCount);
+        metricsLog.append("\n|_ Metrics recorded");
+        
+        log.info(metricsLog.toString());
     }
 }

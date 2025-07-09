@@ -151,11 +151,15 @@ public class ExecutionTimeAspect {
      */
     private void logMetrics(String operation, String className, String methodName, 
                            long executionTime, boolean success) {
-        String metricsLog = String.format(
-            "USER_METRICS|operation=%s|class=%s|method=%s|execution_time_ms=%d|success=%s|timestamp=%s",
-            operation, className, methodName, executionTime, success, 
-            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-        );
-        log.info(metricsLog);
+        StringBuilder metricsLog = new StringBuilder();
+        metricsLog.append("\n[USER-PERFORMANCE-METRICS] ").append(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        metricsLog.append("\n|- Operation: ").append(operation);
+        metricsLog.append("\n|- Class: ").append(className);
+        metricsLog.append("\n|- Method: ").append(methodName);
+        metricsLog.append("\n|- Execution Time: ").append(executionTime).append("ms");
+        metricsLog.append("\n|- Success: ").append(success);
+        metricsLog.append("\n|_ Performance metrics recorded");
+        
+        log.info(metricsLog.toString());
     }
 }

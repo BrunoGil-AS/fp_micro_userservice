@@ -51,31 +51,30 @@ public class UserOperationAspect {
         Object[] args = joinPoint.getArgs();
         
         // Log estructurado multilínea - inicio
-        log.info("╔═══════════════════════════════════════════════════════════════════════════════════════");
-        log.info("║ USER SAVE OPERATION - STARTING");
-        log.info("╠═══════════════════════════════════════════════════════════════════════════════════════");
-        log.info("├─ Timestamp: {}", timestamp);
-        log.info("├─ Operation: SAVE_USER");
-        log.info("├─ Method: {}", joinPoint.getSignature().getName());
-        log.info("├─ Class: {}", joinPoint.getTarget().getClass().getSimpleName());
-        log.info("├─ Arguments count: {}", args.length);
+        StringBuilder startLog = new StringBuilder();
+        startLog.append("\n[USER-SAVE-OPERATION-START] ").append(timestamp);
+        startLog.append("\n|- Operation: SAVE_USER");
+        startLog.append("\n|- Method: ").append(joinPoint.getSignature().getName());
+        startLog.append("\n|- Class: ").append(joinPoint.getTarget().getClass().getSimpleName());
+        startLog.append("\n|- Arguments count: ").append(args.length);
         if (args.length > 0 && args[0] != null) {
-            log.info("├─ User data: {}", formatUserData(args[0]));
+            startLog.append("\n|- User data: ").append(formatUserData(args[0]));
         }
-        log.info("╚═══════════════════════════════════════════════════════════════════════════════════════");
+        
+        log.info(startLog.toString());
         
         try {
             Object result = joinPoint.proceed();
             
             // Log estructurado multilínea - éxito
-            log.info("╔═══════════════════════════════════════════════════════════════════════════════════════");
-            log.info("║ USER SAVE OPERATION - SUCCESS");
-            log.info("╠═══════════════════════════════════════════════════════════════════════════════════════");
-            log.info("├─ Timestamp: {}", timestamp);
-            log.info("├─ Operation: SAVE_USER");
-            log.info("├─ Result type: {}", getResultType(result));
-            log.info("├─ Status: SUCCESS");
-            log.info("╚═══════════════════════════════════════════════════════════════════════════════════════");
+            StringBuilder successLog = new StringBuilder();
+            successLog.append("\n[USER-SAVE-OPERATION-SUCCESS] ").append(timestamp);
+            successLog.append("\n|- Operation: SAVE_USER");
+            successLog.append("\n|- Result type: ").append(getResultType(result));
+            successLog.append("\n|- Status: SUCCESS");
+            successLog.append("\n|_ Execution completed successfully");
+            
+            log.info(successLog.toString());
             
             // Log de métricas de negocio
             logBusinessMetric("USER_CREATED", args.length > 0 ? args[0] : null);
@@ -84,15 +83,15 @@ public class UserOperationAspect {
             
         } catch (Exception e) {
             // Log estructurado multilínea - error
-            log.error("╔═══════════════════════════════════════════════════════════════════════════════════════");
-            log.error("║ USER SAVE OPERATION - ERROR");
-            log.error("╠═══════════════════════════════════════════════════════════════════════════════════════");
-            log.error("├─ Timestamp: {}", timestamp);
-            log.error("├─ Operation: SAVE_USER");
-            log.error("├─ Exception: {}", e.getClass().getSimpleName());
-            log.error("├─ Message: {}", e.getMessage());
-            log.error("├─ Status: ERROR");
-            log.error("╚═══════════════════════════════════════════════════════════════════════════════════════");
+            StringBuilder errorLog = new StringBuilder();
+            errorLog.append("\n[USER-SAVE-OPERATION-ERROR] ").append(timestamp);
+            errorLog.append("\n|- Operation: SAVE_USER");
+            errorLog.append("\n|- Exception: ").append(e.getClass().getSimpleName());
+            errorLog.append("\n|- Message: ").append(e.getMessage());
+            errorLog.append("\n|- Status: ERROR");
+            errorLog.append("\n|_ Operation failed");
+            
+            log.error(errorLog.toString());
             throw e;
         }
     }
@@ -111,53 +110,52 @@ public class UserOperationAspect {
         Object[] args = joinPoint.getArgs();
         
         // Log estructurado multilínea - inicio
-        log.info("╔═══════════════════════════════════════════════════════════════════════════════════════");
-        log.info("║ USER DELETE OPERATION - STARTING");
-        log.info("╠═══════════════════════════════════════════════════════════════════════════════════════");
-        log.info("├─ Timestamp: {}", timestamp);
-        log.info("├─ Operation: {}", methodName.toUpperCase());
-        log.info("├─ Method: {}", methodName);
-        log.info("├─ Arguments: {}", formatParameters(args));
-        log.info("╚═══════════════════════════════════════════════════════════════════════════════════════");
+        StringBuilder startLog = new StringBuilder();
+        startLog.append("\n[USER-DELETE-OPERATION-START] ").append(timestamp);
+        startLog.append("\n|- Operation: ").append(methodName.toUpperCase());
+        startLog.append("\n|- Method: ").append(methodName);
+        startLog.append("\n|- Arguments: ").append(formatParameters(args));
+        
+        log.info(startLog.toString());
         
         try {
             Object result = joinPoint.proceed();
             
             // Log estructurado multilínea - éxito
-            log.info("╔═══════════════════════════════════════════════════════════════════════════════════════");
-            log.info("║ USER DELETE OPERATION - SUCCESS");
-            log.info("╠═══════════════════════════════════════════════════════════════════════════════════════");
-            log.info("├─ Timestamp: {}", timestamp);
-            log.info("├─ Operation: {}", methodName.toUpperCase());
-            log.info("├─ Result: {}", result);
-            log.info("├─ Status: SUCCESS");
-            log.info("╚═══════════════════════════════════════════════════════════════════════════════════════");
+            StringBuilder successLog = new StringBuilder();
+            successLog.append("\n[USER-DELETE-OPERATION-SUCCESS] ").append(timestamp);
+            successLog.append("\n|- Operation: ").append(methodName.toUpperCase());
+            successLog.append("\n|- Result: ").append(result);
+            successLog.append("\n|- Status: SUCCESS");
+            successLog.append("\n|_ Deletion completed");
+            
+            log.info(successLog.toString());
             
             // Alertar sobre eliminaciones (operación crítica)
             if (Boolean.TRUE.equals(result)) {
-                log.warn("╔═══════════════════════════════════════════════════════════════════════════════════════");
-                log.warn("║ USER ALERT - USER DELETED");
-                log.warn("╠═══════════════════════════════════════════════════════════════════════════════════════");
-                log.warn("├─ Timestamp: {}", timestamp);
-                log.warn("├─ Type: USER_DELETED");
-                log.warn("├─ Method: {}", methodName);
-                log.warn("├─ Parameters: {}", formatParameters(args));
-                log.warn("╚═══════════════════════════════════════════════════════════════════════════════════════");
+                StringBuilder alertLog = new StringBuilder();
+                alertLog.append("\n[USER-DELETE-ALERT] ").append(timestamp);
+                alertLog.append("\n|- Type: USER_DELETED");
+                alertLog.append("\n|- Method: ").append(methodName);
+                alertLog.append("\n|- Parameters: ").append(formatParameters(args));
+                alertLog.append("\n|_ Critical operation: User has been deleted");
+                
+                log.warn(alertLog.toString());
             }
             
             return result;
             
         } catch (Exception e) {
             // Log estructurado multilínea - error
-            log.error("╔═══════════════════════════════════════════════════════════════════════════════════════");
-            log.error("║ USER DELETE OPERATION - ERROR");
-            log.error("╠═══════════════════════════════════════════════════════════════════════════════════════");
-            log.error("├─ Timestamp: {}", timestamp);
-            log.error("├─ Operation: {}", methodName.toUpperCase());
-            log.error("├─ Exception: {}", e.getClass().getSimpleName());
-            log.error("├─ Message: {}", e.getMessage());
-            log.error("├─ Status: ERROR");
-            log.error("╚═══════════════════════════════════════════════════════════════════════════════════════");
+            StringBuilder errorLog = new StringBuilder();
+            errorLog.append("\n[USER-DELETE-OPERATION-ERROR] ").append(timestamp);
+            errorLog.append("\n|- Operation: ").append(methodName.toUpperCase());
+            errorLog.append("\n|- Exception: ").append(e.getClass().getSimpleName());
+            errorLog.append("\n|- Message: ").append(e.getMessage());
+            errorLog.append("\n|- Status: ERROR");
+            errorLog.append("\n|_ Delete operation failed");
+            
+            log.error(errorLog.toString());
             throw e;
         }
     }
@@ -176,14 +174,14 @@ public class UserOperationAspect {
         String resultInfo = getSearchResultInfo(result);
         
         // Log estructurado multilínea - búsqueda
-        log.info("╔═══════════════════════════════════════════════════════════════════════════════════════");
-        log.info("║ USER SEARCH OPERATION - SUCCESS");
-        log.info("╠═══════════════════════════════════════════════════════════════════════════════════════");
-        log.info("├─ Timestamp: {}", timestamp);
-        log.info("├─ Operation: {}", methodName.toUpperCase());
-        log.info("├─ {}", resultInfo);
-        log.info("├─ Status: SUCCESS");
-        log.info("╚═══════════════════════════════════════════════════════════════════════════════════════");
+        StringBuilder searchLog = new StringBuilder();
+        searchLog.append("\n[USER-SEARCH-OPERATION-SUCCESS] ").append(timestamp);
+        searchLog.append("\n|- Operation: ").append(methodName.toUpperCase());
+        searchLog.append("\n|- ").append(resultInfo);
+        searchLog.append("\n|- Status: SUCCESS");
+        searchLog.append("\n|_ Search completed");
+        
+        log.info(searchLog.toString());
         
         // Métricas de búsqueda
         if (methodName.equals("getAllUsers") && result instanceof List) {
@@ -203,14 +201,14 @@ public class UserOperationAspect {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         
         // Log estructurado multilínea - actualización
-        log.info("╔═══════════════════════════════════════════════════════════════════════════════════════");
-        log.info("║ USER UPDATE OPERATION - SUCCESS");
-        log.info("╠═══════════════════════════════════════════════════════════════════════════════════════");
-        log.info("├─ Timestamp: {}", timestamp);
-        log.info("├─ Operation: UPDATE_USER");
-        log.info("├─ Result type: {}", getResultType(result));
-        log.info("├─ Status: SUCCESS");
-        log.info("╚═══════════════════════════════════════════════════════════════════════════════════════");
+        StringBuilder updateLog = new StringBuilder();
+        updateLog.append("\n[USER-UPDATE-OPERATION-SUCCESS] ").append(timestamp);
+        updateLog.append("\n|- Operation: UPDATE_USER");
+        updateLog.append("\n|- Result type: ").append(getResultType(result));
+        updateLog.append("\n|- Status: SUCCESS");
+        updateLog.append("\n|_ Update completed");
+        
+        log.info(updateLog.toString());
         
         logBusinessMetric("USER_UPDATED", result);
     }
@@ -227,26 +225,26 @@ public class UserOperationAspect {
         String methodName = joinPoint.getSignature().getName();
         
         // Log estructurado multilínea - error general
-        log.error("╔═══════════════════════════════════════════════════════════════════════════════════════");
-        log.error("║ USER OPERATION ERROR");
-        log.error("╠═══════════════════════════════════════════════════════════════════════════════════════");
-        log.error("├─ Timestamp: {}", timestamp);
-        log.error("├─ Method: {}", methodName);
-        log.error("├─ Exception: {}", exception.getClass().getSimpleName());
-        log.error("├─ Message: {}", exception.getMessage());
-        log.error("╚═══════════════════════════════════════════════════════════════════════════════════════");
+        StringBuilder errorLog = new StringBuilder();
+        errorLog.append("\n[USER-OPERATION-ERROR] ").append(timestamp);
+        errorLog.append("\n|- Method: ").append(methodName);
+        errorLog.append("\n|- Exception: ").append(exception.getClass().getSimpleName());
+        errorLog.append("\n|- Message: ").append(exception.getMessage());
+        errorLog.append("\n|_ Operation failed with exception");
+        
+        log.error(errorLog.toString());
         
         // Alertas para errores críticos
         if (exception instanceof IllegalArgumentException && 
             (methodName.equals("saveUser") || methodName.equals("updateUser"))) {
-            log.warn("╔═══════════════════════════════════════════════════════════════════════════════════════");
-            log.warn("║ USER VALIDATION ALERT");
-            log.warn("╠═══════════════════════════════════════════════════════════════════════════════════════");
-            log.warn("├─ Timestamp: {}", timestamp);
-            log.warn("├─ Type: VALIDATION_ERROR");
-            log.warn("├─ Method: {}", methodName);
-            log.warn("├─ Error: {}", exception.getMessage());
-            log.warn("╚═══════════════════════════════════════════════════════════════════════════════════════");
+            StringBuilder alertLog = new StringBuilder();
+            alertLog.append("\n[USER-VALIDATION-ALERT] ").append(timestamp);
+            alertLog.append("\n|- Type: VALIDATION_ERROR");
+            alertLog.append("\n|- Method: ").append(methodName);
+            alertLog.append("\n|- Error: ").append(exception.getMessage());
+            alertLog.append("\n|_ Validation failed for critical operation");
+            
+            log.warn(alertLog.toString());
         }
     }
 
@@ -366,16 +364,16 @@ public class UserOperationAspect {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         
         // Log estructurado multilínea - métrica de negocio
-        log.info("╔═══════════════════════════════════════════════════════════════════════════════════════");
-        log.info("║ USER BUSINESS METRIC");
-        log.info("╠═══════════════════════════════════════════════════════════════════════════════════════");
-        log.info("├─ Timestamp: {}", timestamp);
-        log.info("├─ Metric: {}", metric);
+        StringBuilder metricsLog = new StringBuilder();
+        metricsLog.append("\n[USER-BUSINESS-METRIC] ").append(timestamp);
+        metricsLog.append("\n|- Metric: ").append(metric);
         if (data instanceof Number) {
-            log.info("├─ Value: {}", data);
+            metricsLog.append("\n|- Value: ").append(data);
         } else if (data != null) {
-            log.info("├─ Data Type: {}", data.getClass().getSimpleName());
+            metricsLog.append("\n|- Data Type: ").append(data.getClass().getSimpleName());
         }
-        log.info("╚═══════════════════════════════════════════════════════════════════════════════════════");
+        metricsLog.append("\n|_ Business metric recorded");
+        
+        log.info(metricsLog.toString());
     }
 }

@@ -4,6 +4,7 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.aspiresys.fp_micro_userservice.aop.annotation.ValidateParameters;
@@ -11,6 +12,8 @@ import com.aspiresys.fp_micro_userservice.config.AopProperties;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
@@ -35,6 +38,7 @@ import java.util.regex.Pattern;
 @Aspect
 @Component
 @Slf4j
+@Order(1) // Ejecutar primero las validaciones
 public class ValidationAspect {
 
     @Autowired
@@ -76,9 +80,16 @@ public class ValidationAspect {
             validateEmailFormat(args, className, methodName, validateParameters);
         }
 
-        log.info(String.format(
-            "USER_VALIDATION|class=%s|method=%s|param_count=%d|validation=SUCCESS", 
-            className, methodName, args.length));
+        // Log de validación exitosa
+        StringBuilder validationLog = new StringBuilder();
+        validationLog.append("\n[USER-VALIDATION-SUCCESS] ").append(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        validationLog.append("\n|- Class: ").append(className);
+        validationLog.append("\n|- Method: ").append(methodName);
+        validationLog.append("\n|- Param Count: ").append(args.length);
+        validationLog.append("\n|- Validation: SUCCESS");
+        validationLog.append("\n|_ All parameters validated successfully");
+        
+        log.info(validationLog.toString());
     }
 
     /**
