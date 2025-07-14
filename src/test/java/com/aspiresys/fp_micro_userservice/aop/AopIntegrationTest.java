@@ -37,6 +37,7 @@ import java.util.Optional;
 })
 public class AopIntegrationTest {
 
+    @SuppressWarnings("removal")
     @MockBean
     private UserRepository userRepository;
 
