@@ -58,14 +58,14 @@ public class UserServiceImpl implements UserService {
         // Send Kafka message based on whether it's a new user or update
         try {
             if (isNewUser) {
-                log.info("📤 KAFKA USER: Sending USER_CREATED event for user: " + savedUser.getEmail());
+                log.info("KAFKA USER: Sending USER_CREATED event for user: " + savedUser.getEmail());
                 userProducerService.sendUserCreated(savedUser);
             } else {
-                log.info("📤 KAFKA USER: Sending USER_UPDATED event for user: " + savedUser.getEmail());
+                log.info("KAFKA USER: Sending USER_UPDATED event for user: " + savedUser.getEmail());
                 userProducerService.sendUserUpdated(savedUser);
             }
         } catch (Exception e) {
-            log.warning("❌ Failed to send Kafka message for user " + savedUser.getEmail() + ": " + e.getMessage());
+            log.warning("Failed to send Kafka message for user " + savedUser.getEmail() + ": " + e.getMessage());
         }
         
         return savedUser;
@@ -105,10 +105,10 @@ public class UserServiceImpl implements UserService {
         // Send Kafka message if deletion was successful
         if (deleted && userToDelete != null) {
             try {
-                log.info("📤 KAFKA USER: Sending USER_DELETED event for user: " + userToDelete.getEmail());
+                log.info("KAFKA USER: Sending USER_DELETED event for user: " + userToDelete.getEmail());
                 userProducerService.sendUserDeleted(userToDelete);
             } catch (Exception e) {
-                log.warning("❌ Failed to send Kafka delete message for user " + userToDelete.getEmail() + ": " + e.getMessage());
+                log.warning("Failed to send Kafka delete message for user " + userToDelete.getEmail() + ": " + e.getMessage());
             }
         }
         
@@ -125,10 +125,10 @@ public class UserServiceImpl implements UserService {
             
             // Send Kafka message if deletion was successful
             try {
-                log.info("📤 KAFKA USER: Sending USER_DELETED event for user: " + userToDelete.getEmail());
+                log.info("KAFKA USER: Sending USER_DELETED event for user: " + userToDelete.getEmail());
                 userProducerService.sendUserDeleted(userToDelete);
             } catch (Exception e) {
-                log.warning("❌ Failed to send Kafka delete message for user " + userToDelete.getEmail() + ": " + e.getMessage());
+                log.warning("Failed to send Kafka delete message for user " + userToDelete.getEmail() + ": " + e.getMessage());
             }
         }
         return !userRepository.findByEmail(email).isPresent();
@@ -146,10 +146,10 @@ public class UserServiceImpl implements UserService {
         
         // Send Kafka message for user update
         try {
-            log.info("📤 KAFKA USER: Sending USER_UPDATED event for user: " + updatedUser.getEmail());
+            log.info("KAFKA USER: Sending USER_UPDATED event for user: " + updatedUser.getEmail());
             userProducerService.sendUserUpdated(updatedUser);
         } catch (Exception e) {
-            log.warning("❌ Failed to send Kafka update message for user " + updatedUser.getEmail() + ": " + e.getMessage());
+            log.warning("Failed to send Kafka update message for user " + updatedUser.getEmail() + ": " + e.getMessage());
         }
         
         return updatedUser;
