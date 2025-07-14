@@ -2,11 +2,14 @@ package com.aspiresys.fp_micro_userservice.user;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.aspiresys.fp_micro_userservice.aop.annotation.Auditable;
 import com.aspiresys.fp_micro_userservice.aop.annotation.ExecutionTime;
 import com.aspiresys.fp_micro_userservice.aop.annotation.ValidateParameters;
+import com.aspiresys.fp_micro_userservice.kafka.producer.UserProducerService;
+import lombok.extern.java.Log;
 
 /**
  * Service implementation for managing User entities.
@@ -32,9 +35,13 @@ import com.aspiresys.fp_micro_userservice.aop.annotation.ValidateParameters;
  * @see UserRepository
  */
 @Service
+@Log
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    
+    @Autowired
+    private UserProducerService userProducerService;
 
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -45,7 +52,23 @@ public class UserServiceImpl implements UserService {
     @ExecutionTime(operation = "Save User", warningThreshold = 500, detailed = true)
     @ValidateParameters(notNull = true, message = "User cannot be null")
     public User saveUser(User user) {
-        return userRepository.save(user);
+        boolean isNewUser = user.getId() == null;
+        User savedUser = userRepository.save(user);
+        
+        // Send Kafka message based on whether it's a new user or update
+        try {
+            if (isNewUser) {
+                log.info("📤 KAFKA USER: Sending USER_CREATED event for user: " + savedUser.getEmail());
+                userProducerService.sendUserCreated(savedUser);
+            } else {
+                log.info("📤 KAFKA USER: Sending USER_UPDATED event for user: " + savedUser.getEmail());
+                userProducerService.sendUserUpdated(savedUser);
+            }
+        } catch (Exception e) {
+            log.warning("❌ Failed to send Kafka message for user " + savedUser.getEmail() + ": " + e.getMessage());
+        }
+        
+        return savedUser;
     }
 
     @Override
@@ -73,17 +96,40 @@ public class UserServiceImpl implements UserService {
     @ExecutionTime(operation = "Delete User By ID", warningThreshold = 400)
     @ValidateParameters(notNull = true, message = "User ID cannot be null")
     public boolean deleteUserById(Long id) {
+        // Get user before deletion for Kafka message
+        User userToDelete = getUserById(id);
+        
         userRepository.deleteById(id);
-        return !userRepository.existsById(id);
+        boolean deleted = !userRepository.existsById(id);
+        
+        // Send Kafka message if deletion was successful
+        if (deleted && userToDelete != null) {
+            try {
+                log.info("📤 KAFKA USER: Sending USER_DELETED event for user: " + userToDelete.getEmail());
+                userProducerService.sendUserDeleted(userToDelete);
+            } catch (Exception e) {
+                log.warning("❌ Failed to send Kafka delete message for user " + userToDelete.getEmail() + ": " + e.getMessage());
+            }
+        }
+        
+        return deleted;
     }
     @Override
     @Auditable(operation = "DELETE_USER_BY_EMAIL", entityType = "User", logParameters = true, logResult = true)
     @ExecutionTime(operation = "Delete User By Email", warningThreshold = 600)
     @ValidateParameters(notNull = true, validateEmail = true, message = "Email cannot be null and must be valid")
     public boolean deleteUserByEmail(String email) {
-        User user = getUserByEmail(email);
-        if (user != null) {
-            userRepository.delete(user);
+        User userToDelete = getUserByEmail(email);
+        if (userToDelete != null) {
+            userRepository.delete(userToDelete);
+            
+            // Send Kafka message if deletion was successful
+            try {
+                log.info("📤 KAFKA USER: Sending USER_DELETED event for user: " + userToDelete.getEmail());
+                userProducerService.sendUserDeleted(userToDelete);
+            } catch (Exception e) {
+                log.warning("❌ Failed to send Kafka delete message for user " + userToDelete.getEmail() + ": " + e.getMessage());
+            }
         }
         return !userRepository.findByEmail(email).isPresent();
     }
@@ -95,7 +141,18 @@ public class UserServiceImpl implements UserService {
         if (user.getId() == null || !userRepository.existsById(user.getId())) {
             throw new IllegalArgumentException("User does not exist");
         }
-        return userRepository.save(user);
+        
+        User updatedUser = userRepository.save(user);
+        
+        // Send Kafka message for user update
+        try {
+            log.info("📤 KAFKA USER: Sending USER_UPDATED event for user: " + updatedUser.getEmail());
+            userProducerService.sendUserUpdated(updatedUser);
+        } catch (Exception e) {
+            log.warning("❌ Failed to send Kafka update message for user " + updatedUser.getEmail() + ": " + e.getMessage());
+        }
+        
+        return updatedUser;
     }
     @Override
     @ExecutionTime(operation = "Check User Exists By Email", warningThreshold = 200)
