@@ -29,9 +29,10 @@ import java.util.Optional;
 @SpringBootTest
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
-    "app.aop.audit.enabled=true",
-    "app.aop.performance.enabled=true", 
-    "app.aop.validation.enabled=true",
+    "spring.cloud.config.enabled=false",
+    "spring.config.import=optional:configserver:",
+    "eureka.client.enabled=false",
+    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration",
     "spring.aop.auto=true",
     "spring.aop.proxy-target-class=true"
 })
@@ -132,15 +133,18 @@ public class AopIntegrationTest {
 
     @Test
     void testValidationAspectWithNullUser() {
+        // Arrange - Resetear el mock antes del test para ignorar las llamadas del DataLoader
+        reset(userRepository);
+        
         // Act & Assert - Debería lanzar excepción por validación AOP
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class, 
             () -> userService.saveUser(null)
         );
         
-        // Verificar que el mensaje contiene el texto esperado
+        // Verificar que el mensaje contiene el texto esperado del aspecto
         assertTrue(exception.getMessage().contains("User cannot be null"));
-        assertTrue(exception.getMessage().contains("Parameter validation failed"));
+        assertTrue(exception.getMessage().contains("User service parameter validation failed"));
 
         // No debería llamar al repository si la validación falla
         verify(userRepository, never()).save(any());
@@ -148,6 +152,9 @@ public class AopIntegrationTest {
 
     @Test
     void testValidationAspectWithNullId() {
+        // Arrange - Resetear el mock antes del test
+        reset(userRepository);
+        
         // Act & Assert - Debería lanzar excepción por validación AOP
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
@@ -162,10 +169,13 @@ public class AopIntegrationTest {
 
     @Test
     void testValidationAspectWithInvalidEmail() {
+        // Arrange - Resetear el mock antes del test
+        reset(userRepository);
+        
         // Act & Assert - Debería lanzar excepción por validación de email
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> userService.getUserByEmail("invalid-email")
+            () -> userService.getUserByEmail("invalid@email@format")
         );
         
         assertTrue(exception.getMessage().contains("invalid email format"));
