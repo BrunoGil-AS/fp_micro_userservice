@@ -2,6 +2,12 @@
 
 The **User Service** is a Spring Boot microservice and part of the FP project's microservices architecture. It handles comprehensive user management, including CRUD operations, OAuth2 authentication, and asynchronous communication with other services through Kafka events.
 
+![Service Structure](<./diagrams/Final Project - ServiceStructure.png>)
+
+![User Flow](<./diagrams/Final Project - UserFlow.png>)
+
+---
+
 ## Main Features
 
 - **User Management**: Full create, read, update, and delete operations
